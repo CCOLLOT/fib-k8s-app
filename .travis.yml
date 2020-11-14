@@ -1,0 +1,36 @@
+language: generic 
+
+sudo : required
+
+services:
+    - docker
+
+before_install:
+    - docker build -t ccollot/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true ccollot/react-test npm run test -- --coverage
+
+after_success:
+    - docker build -t ccollot/client ./client
+    - docker build -t ccollot/nginx ./nginx
+    - docker build -t ccollot/server ./server
+    - docker build -t ccollot/worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push ccollot/client
+    - docker push ccollot/nginx
+    - docker push ccollot/server
+    - docker push ccollot/worker
+
+deploy:
+    provider: 'elasticbeanstalk'
+    region: 'eu-west-1'
+    app: 'multi_container_app'
+    env: 'multi-container-bt-environment'
+    bucket_name: beanapp
+    bucket_path : multi-docker
+    on:
+        branch: main
+    access_key_id: $AWS_ACCESS_KEY_ID
+    secret_access_key: $AWS_SECRET_ACCESS_KEY
