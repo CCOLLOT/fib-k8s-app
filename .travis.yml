@@ -15,7 +15,7 @@ before_install:
     - gcloud config set compute/zone europe-west1-b
     - gcloud container clusters get-credentials fib-k8s-app-cluster
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-    - docker build -t ccollot/client -f ./client/Dockerfile.dev
+    - docker build -t ccollot/client -f ./client/Dockerfile.dev ./client
 
 script:
     - docker run -e CI=true ccollot/client -f npm run test -- --coverage
